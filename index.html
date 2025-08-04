@@ -408,23 +408,29 @@
         };
         
         // Add click handlers to menu items (but not to quantity controls)
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', function(event) {
-                // Don't add to cart if clicking on quantity controls
-                if (event.target.classList.contains('qty-btn') || 
-                    event.target.closest('.quantity-controls')) {
-                    return;
-                }
-                
-                const itemId = this.dataset.item;
-                if (!cart[itemId]) {
-                    cart[itemId] = 0;
-                }
-                changeQuantity(itemId, 1);
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', function(event) {
+                    // Don't add to cart if clicking on quantity controls
+                    if (event.target.classList.contains('qty-btn') || 
+                        event.target.closest('.quantity-controls')) {
+                        event.stopPropagation();
+                        return;
+                    }
+                    
+                    const itemId = this.dataset.item;
+                    if (!cart[itemId]) {
+                        cart[itemId] = 0;
+                    }
+                    changeQuantity(itemId, 1);
+                });
             });
         });
         
         function changeQuantity(itemId, delta) {
+            // Prevent event bubbling
+            event.stopPropagation();
+            
             // Initialize if doesn't exist
             if (!cart[itemId]) {
                 cart[itemId] = 0;
