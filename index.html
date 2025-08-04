@@ -189,12 +189,23 @@
             border-radius: 50%;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        
+        .qty-btn:hover {
+            background: #45a049;
+            transform: scale(1.1);
+        }
+        
+        .qty-btn:active {
+            transform: scale(0.95);
         }
         
         .qty-display {
             min-width: 30px;
             text-align: center;
             font-weight: bold;
+            font-size: 1.1em;
         }
         
         @media (max-width: 768px) {
@@ -396,9 +407,15 @@
             'ice-kacang': { name: 'Ais Kacang', price: 6.00 }
         };
         
-        // Add click handlers to menu items
+        // Add click handlers to menu items (but not to quantity controls)
         document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', function() {
+            item.addEventListener('click', function(event) {
+                // Don't add to cart if clicking on quantity controls
+                if (event.target.classList.contains('qty-btn') || 
+                    event.target.closest('.quantity-controls')) {
+                    return;
+                }
+                
                 const itemId = this.dataset.item;
                 if (!cart[itemId]) {
                     cart[itemId] = 0;
@@ -408,26 +425,38 @@
         });
         
         function changeQuantity(itemId, delta) {
-            if (!cart[itemId]) cart[itemId] = 0;
+            // Initialize if doesn't exist
+            if (!cart[itemId]) {
+                cart[itemId] = 0;
+            }
             
+            // Update quantity
             cart[itemId] += delta;
-            if (cart[itemId] < 0) cart[itemId] = 0;
             
-            // Update display
+            // Don't allow negative quantities
+            if (cart[itemId] < 0) {
+                cart[itemId] = 0;
+            }
+            
+            // Get DOM elements
             const qtyDisplay = document.getElementById(`qty-${itemId}`);
             const controls = document.querySelector(`[data-item="${itemId}"] .quantity-controls`);
             const menuItem = document.querySelector(`[data-item="${itemId}"]`);
             
+            // Update display based on quantity
             if (cart[itemId] > 0) {
                 qtyDisplay.textContent = cart[itemId];
                 controls.style.display = 'flex';
                 menuItem.classList.add('selected');
             } else {
+                // Hide controls and remove selection when quantity is 0
                 controls.style.display = 'none';
                 menuItem.classList.remove('selected');
+                // Remove from cart object when quantity is 0
                 delete cart[itemId];
             }
             
+            // Update cart display
             updateCart();
         }
         
@@ -439,6 +468,7 @@
             total = 0;
             const items = [];
             
+            // Calculate total and build items list
             for (const [itemId, quantity] of Object.entries(cart)) {
                 if (quantity > 0) {
                     const item = menuItems[itemId];
@@ -448,6 +478,7 @@
                 }
             }
             
+            // Update display
             if (items.length > 0) {
                 cartItemsEl.textContent = items.join(', ');
                 orderBtn.disabled = false;
@@ -475,8 +506,7 @@
                 }
             }
             
-            // This would normally send to your backend
-            // For now, we'll simulate success and use postMessage to communicate with Android WebView
+            // Simulate order processing
             setTimeout(() => {
                 // Send order data to Android app
                 if (window.Android) {
@@ -493,7 +523,7 @@
                     alert(`Order placed successfully!\n\nItems: ${orderItems.join(', ')}\nTotal: RM ${total.toFixed(2)}\n\nThank you!`);
                 }
                 
-                // Reset cart
+                // Reset cart and UI
                 cart = {};
                 document.querySelectorAll('.menu-item').forEach(item => {
                     item.classList.remove('selected');
@@ -505,11 +535,12 @@
                 orderBtn.textContent = 'Order Placed! ✅';
                 setTimeout(() => {
                     orderBtn.textContent = 'Place Order';
+                    orderBtn.disabled = false;
                 }, 3000);
             }, 2000);
         }
         
-        // Initialize
+        // Initialize cart display
         updateCart();
     </script>
 </body>
