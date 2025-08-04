@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Menu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .menu-section {
+            padding: 40px;
+        }
+        
+        .category {
+            margin-bottom: 50px;
+        }
+        
+        .category h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .menu-item {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #4CAF50;
+        }
+        
+        .menu-item.selected {
+            background: #e8f5e8;
+            border-color: #4CAF50;
+            transform: scale(1.02);
+        }
+        
+        .item-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .item-description {
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+        
+        .item-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .cart-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            border-top: 1px solid #eee;
+        }
+        
+        .cart-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .cart-items {
+            flex: 1;
+            margin-right: 20px;
+        }
+        
+        .cart-total {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-right: 20px;
+        }
+        
+        .order-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+        
+        .order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .order-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .session-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+        }
+        
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .qty-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .qty-display {
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cart-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .cart-items {
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="session-info" id="sessionInfo">
+        Loading session...
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Restaurant Menu</h1>
+            <p>Select your delicious meals</p>
+        </div>
+        
+        <div class="menu-section">
+            <!-- Main Courses -->
+            <div class="category">
+                <h2>🍛 Main Courses</h2>
+                <div class="menu-grid">
+                    <div class="menu-item" data-item="nasi-goreng" data-price="15.90">
+                        <div class="item-name">Nasi Goreng</div>
+                        <div class="item-description">Traditional Malaysian fried rice with chicken, prawns, and vegetables</div>
+                        <div class="item-price">RM 15.90</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('nasi-goreng', -1)">-</button>
+                            <span class="qty-display" id="qty-nasi-goreng">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('nasi-goreng', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="mee-goreng" data-price="13.90">
+                        <div class="item-name">Mee Goreng</div>
+                        <div class="item-description">Spicy stir-fried noodles with tofu, vegetables, and egg</div>
+                        <div class="item-price">RM 13.90</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('mee-goreng', -1)">-</button>
+                            <span class="qty-display" id="qty-mee-goreng">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('mee-goreng', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="chicken-rice" data-price="12.50">
+                        <div class="item-name">Hainanese Chicken Rice</div>
+                        <div class="item-description">Tender steamed chicken served with fragrant rice and ginger sauce</div>
+                        <div class="item-price">RM 12.50</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('chicken-rice', -1)">-</button>
+                            <span class="qty-display" id="qty-chicken-rice">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('chicken-rice', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="rendang" data-price="18.90">
+                        <div class="item-name">Beef Rendang</div>
+                        <div class="item-description">Slow-cooked beef in rich coconut curry with aromatic spices</div>
+                        <div class="item-price">RM 18.90</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('rendang', -1)">-</button>
+                            <span class="qty-display" id="qty-rendang">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('rendang', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Beverages -->
+            <div class="category">
+                <h2>🥤 Beverages</h2>
+                <div class="menu-grid">
+                    <div class="menu-item" data-item="teh-ais" data-price="3.50">
+                        <div class="item-name">Teh Ais</div>
+                        <div class="item-description">Refreshing iced milk tea, a Malaysian favorite</div>
+                        <div class="item-price">RM 3.50</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('teh-ais', -1)">-</button>
+                            <span class="qty-display" id="qty-teh-ais">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('teh-ais', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="kopi-o" data-price="2.80">
+                        <div class="item-name">Kopi O</div>
+                        <div class="item-description">Traditional black coffee, strong and aromatic</div>
+                        <div class="item-price">RM 2.80</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('kopi-o', -1)">-</button>
+                            <span class="qty-display" id="qty-kopi-o">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('kopi-o', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="fresh-orange" data-price="4.50">
+                        <div class="item-name">Fresh Orange Juice</div>
+                        <div class="item-description">Freshly squeezed orange juice, vitamin C packed</div>
+                        <div class="item-price">RM 4.50</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('fresh-orange', -1)">-</button>
+                            <span class="qty-display" id="qty-fresh-orange">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('fresh-orange', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="coconut-water" data-price="3.00">
+                        <div class="item-name">Young Coconut Water</div>
+                        <div class="item-description">Natural coconut water, refreshing and healthy</div>
+                        <div class="item-price">RM 3.00</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('coconut-water', -1)">-</button>
+                            <span class="qty-display" id="qty-coconut-water">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('coconut-water', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Desserts -->
+            <div class="category">
+                <h2>🍨 Desserts</h2>
+                <div class="menu-grid">
+                    <div class="menu-item" data-item="cendol" data-price="5.50">
+                        <div class="item-name">Cendol</div>
+                        <div class="item-description">Traditional Malaysian dessert with pandan jelly, coconut milk, and palm sugar</div>
+                        <div class="item-price">RM 5.50</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('cendol', -1)">-</button>
+                            <span class="qty-display" id="qty-cendol">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('cendol', 1)">+</button>
+                        </div>
+                    </div>
+                    
+                    <div class="menu-item" data-item="ice-kacang" data-price="6.00">
+                        <div class="item-name">Ais Kacang</div>
+                        <div class="item-description">Shaved ice dessert with red beans, corn, jelly, and colorful syrups</div>
+                        <div class="item-price">RM 6.00</div>
+                        <div class="quantity-controls" style="display: none;">
+                            <button class="qty-btn" onclick="changeQuantity('ice-kacang', -1)">-</button>
+                            <span class="qty-display" id="qty-ice-kacang">0</span>
+                            <button class="qty-btn" onclick="changeQuantity('ice-kacang', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="cart-section">
+        <div class="cart-content">
+            <div class="cart-items" id="cartItems">
+                No items selected
+            </div>
+            <div class="cart-total" id="cartTotal">
+                Total: RM 0.00
+            </div>
+            <button class="order-btn" id="orderBtn" onclick="submitOrder()" disabled>
+                Place Order
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const tableNo = urlParams.get('t') || 'Table 1';
+        const sessionId = urlParams.get('session') || 'demo-session';
+        
+        // Update session info
+        document.getElementById('sessionInfo').textContent = `${tableNo} | Session: ${sessionId.slice(-8)}`;
+        
+        // Cart management
+        let cart = {};
+        let total = 0;
+        
+        // Menu item data
+        const menuItems = {
+            'nasi-goreng': { name: 'Nasi Goreng', price: 15.90 },
+            'mee-goreng': { name: 'Mee Goreng', price: 13.90 },
+            'chicken-rice': { name: 'Hainanese Chicken Rice', price: 12.50 },
+            'rendang': { name: 'Beef Rendang', price: 18.90 },
+            'teh-ais': { name: 'Teh Ais', price: 3.50 },
+            'kopi-o': { name: 'Kopi O', price: 2.80 },
+            'fresh-orange': { name: 'Fresh Orange Juice', price: 4.50 },
+            'coconut-water': { name: 'Young Coconut Water', price: 3.00 },
+            'cendol': { name: 'Cendol', price: 5.50 },
+            'ice-kacang': { name: 'Ais Kacang', price: 6.00 }
+        };
+        
+        // Add click handlers to menu items
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const itemId = this.dataset.item;
+                if (!cart[itemId]) {
+                    cart[itemId] = 0;
+                }
+                changeQuantity(itemId, 1);
+            });
+        });
+        
+        function changeQuantity(itemId, delta) {
+            if (!cart[itemId]) cart[itemId] = 0;
+            
+            cart[itemId] += delta;
+            if (cart[itemId] < 0) cart[itemId] = 0;
+            
+            // Update display
+            const qtyDisplay = document.getElementById(`qty-${itemId}`);
+            const controls = document.querySelector(`[data-item="${itemId}"] .quantity-controls`);
+            const menuItem = document.querySelector(`[data-item="${itemId}"]`);
+            
+            if (cart[itemId] > 0) {
+                qtyDisplay.textContent = cart[itemId];
+                controls.style.display = 'flex';
+                menuItem.classList.add('selected');
+            } else {
+                controls.style.display = 'none';
+                menuItem.classList.remove('selected');
+                delete cart[itemId];
+            }
+            
+            updateCart();
+        }
+        
+        function updateCart() {
+            const cartItemsEl = document.getElementById('cartItems');
+            const cartTotalEl = document.getElementById('cartTotal');
+            const orderBtn = document.getElementById('orderBtn');
+            
+            total = 0;
+            const items = [];
+            
+            for (const [itemId, quantity] of Object.entries(cart)) {
+                if (quantity > 0) {
+                    const item = menuItems[itemId];
+                    const itemTotal = item.price * quantity;
+                    total += itemTotal;
+                    items.push(`${item.name} x${quantity}`);
+                }
+            }
+            
+            if (items.length > 0) {
+                cartItemsEl.textContent = items.join(', ');
+                orderBtn.disabled = false;
+            } else {
+                cartItemsEl.textContent = 'No items selected';
+                orderBtn.disabled = true;
+            }
+            
+            cartTotalEl.textContent = `Total: RM ${total.toFixed(2)}`;
+        }
+        
+        function submitOrder() {
+            if (Object.keys(cart).length === 0) return;
+            
+            const orderBtn = document.getElementById('orderBtn');
+            orderBtn.textContent = 'Processing...';
+            orderBtn.disabled = true;
+            
+            // Prepare order data
+            const orderItems = [];
+            for (const [itemId, quantity] of Object.entries(cart)) {
+                if (quantity > 0) {
+                    const item = menuItems[itemId];
+                    orderItems.push(`${item.name} x${quantity}`);
+                }
+            }
+            
+            // This would normally send to your backend
+            // For now, we'll simulate success and use postMessage to communicate with Android WebView
+            setTimeout(() => {
+                // Send order data to Android app
+                if (window.Android) {
+                    // If Android interface is available
+                    window.Android.onOrderComplete(JSON.stringify({
+                        session_id: sessionId,
+                        table_no: tableNo,
+                        items: orderItems,
+                        total: total.toFixed(2),
+                        timestamp: new Date().toISOString()
+                    }));
+                } else {
+                    // Fallback - show success message
+                    alert(`Order placed successfully!\n\nItems: ${orderItems.join(', ')}\nTotal: RM ${total.toFixed(2)}\n\nThank you!`);
+                }
+                
+                // Reset cart
+                cart = {};
+                document.querySelectorAll('.menu-item').forEach(item => {
+                    item.classList.remove('selected');
+                    const controls = item.querySelector('.quantity-controls');
+                    controls.style.display = 'none';
+                });
+                updateCart();
+                
+                orderBtn.textContent = 'Order Placed! ✅';
+                setTimeout(() => {
+                    orderBtn.textContent = 'Place Order';
+                }, 3000);
+            }, 2000);
+        }
+        
+        // Initialize
+        updateCart();
+    </script>
+</body>
+</html>
