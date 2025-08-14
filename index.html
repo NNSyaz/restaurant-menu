@@ -720,18 +720,6 @@
             font-size: clamp(1.6em, 4vw, 2.2em);
         }
 
-        .order-number {
-            font-size: clamp(3em, 8vw, 5em);
-            font-weight: bold;
-            color: #4CAF50;
-            margin: 30px 0;
-            text-shadow: 3px 3px 6px rgba(0,0,0,0.1);
-            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
-            padding: 25px;
-            border-radius: 20px;
-            border: 3px solid #4CAF50;
-        }
-
         .order-details {
             background: #f8f9fa;
             padding: 25px;
@@ -864,8 +852,7 @@
     <!-- Order Success Modal -->
     <div class="order-success" id="orderSuccess">
         <h3>🎉 Order Placed Successfully!</h3>
-        <div class="order-number" id="orderNumberDisplay">1000</div>
-        <p style="font-size: 1.3em; color: #666; margin-bottom: 15px;"><strong>Your Order Number</strong></p>
+        <p style="font-size: 1.3em; color: #666; margin-bottom: 15px;"><strong>Your order has been submitted to the kitchen</strong></p>
         <div class="order-details" id="orderSuccessDetails">
             <p><strong>Table:</strong> <span id="successTableNumber">Table 1</span></p>
             <p><strong>Customer:</strong> <span id="successCustomerName">Guest</span></p>
@@ -1126,16 +1113,9 @@
         }
         
         // Update session info
-        function updateSessionInfo(orderNumber = null) {
+        function updateSessionInfo() {
             const sessionInfo = document.getElementById('sessionInfo');
-            let infoText = '';
-            
-            if (orderNumber) {
-                infoText = `Order #${orderNumber} | ${tableNo}`;
-            } else {
-                infoText = `${tableNo} | Session: ${sessionId.slice(-8)}`;
-            }
-            
+            const infoText = `${tableNo} | Session: ${sessionId.slice(-8)}`;
             sessionInfo.textContent = infoText;
         }
         
@@ -1310,25 +1290,23 @@
             submitOrder();
         }
         
-        // Show order success modal
-        function showOrderSuccess(orderNumber, orderItems, totalAmount) {
+        // Show order success modal (without order number)
+        function showOrderSuccess(orderItems, totalAmount) {
             const modal = document.getElementById('orderSuccess');
             
-            document.getElementById('orderNumberDisplay').textContent = orderNumber;
             document.getElementById('successTableNumber').textContent = tableNo;
             document.getElementById('successCustomerName').textContent = customerName;
             document.getElementById('successOrderItems').textContent = orderItems.join(', ');
             document.getElementById('successOrderTotal').textContent = `RM ${totalAmount}`;
             
             modal.classList.add('show');
-            updateSessionInfo(orderNumber);
         }
         
         function closeOrderSuccess() {
             document.getElementById('orderSuccess').classList.remove('show');
         }
         
-        // Submit order (simplified for demo)
+        // Submit order (backend will handle order number)
         async function submitOrder() {
             if (Object.keys(cart).length === 0) return;
             
@@ -1350,19 +1328,15 @@
             setTimeout(() => {
                 showLoading(false);
                 
-                // Generate order number
-                const orderNumber = Math.floor(Math.random() * 1000) + 1000;
+                // Show success (backend will provide order number)
+                showOrderSuccess(orderItems, total.toFixed(2));
+                showNotification('Order submitted successfully!', 'success');
                 
-                // Show success
-                showOrderSuccess(orderNumber, orderItems, total.toFixed(2));
-                showNotification(`Order #${orderNumber} placed successfully!`, 'success');
-                
-                // Send to Android app if available
+                // Send to Android app if available (backend will handle order number)
                 if (window.Android) {
                     window.Android.onOrderComplete(JSON.stringify({
                         session_id: sessionId,
                         table_no: tableNo,
-                        order_number: orderNumber,
                         items: orderItems,
                         total: total.toFixed(2),
                         timestamp: new Date().toISOString()
